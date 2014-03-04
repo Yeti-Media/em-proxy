@@ -26,17 +26,19 @@ module EventMachine
       def relay_to_servers(processed)
         if processed.is_a? Array
           data, servers = *processed
-
           # guard for "unbound" servers
           servers = servers.collect {|s| @servers[s]}.compact
+          send_data(servers, data)
+        elsif processed.is_a? Hash
+          processed.each do |s,data|
+            s.send_data data
+          end  
         else
           data = processed
           servers ||= @servers.values.compact
+          send_data(servers, data)
         end
 
-        servers.each do |s|
-          s.send_data data unless data.nil?
-        end
       end
 
       #
@@ -122,6 +124,12 @@ module EventMachine
       end
 
       private
+
+      def send_data(servers,data)
+        servers.each do |s|
+          s.send_data data unless data.nil?
+        end
+      end
 
       def debug(*data)
         if @debug
