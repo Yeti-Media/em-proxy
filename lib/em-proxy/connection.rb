@@ -28,15 +28,15 @@ module EventMachine
           data, servers = *processed
           # guard for "unbound" servers
           servers = servers.collect {|s| @servers[s]}.compact
-          send_data(servers, data)
+          send_data_to_servers(servers, data)
         elsif processed.is_a? Hash
-          processed.each do |s,data|
-            s.send_data data
+          processed.each do |server_name,data|
+            @servers[server_name].send_data data
           end  
         else
           data = processed
           servers ||= @servers.values.compact
-          send_data(servers, data)
+          send_data_to_servers(servers, data)
         end
 
       end
@@ -125,7 +125,7 @@ module EventMachine
 
       private
 
-      def send_data(servers,data)
+      def send_data_to_servers(servers,data)
         servers.each do |s|
           s.send_data data unless data.nil?
         end
